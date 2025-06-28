@@ -230,6 +230,68 @@
             margin-top: 0.25rem;
             text-align: right;
         }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+        }
+        
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            display: inline-block;
+            opacity: 0.4;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation: typing 1s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation: typing 1s 0.2s infinite;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation: typing 1s 0.4s infinite;
+        }
+        
+        @keyframes typing {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-3px); }
+        }
+        
+        /* Error state */
+        .message.error {
+            border-left: 3px solid var(--error);
+        }
+        
+        /* Message streaming */
+        .message-content {
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        
+        /* Loading state */
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
             background: #4CAF50;
             color: white;
             cursor: pointer;
@@ -412,113 +474,252 @@
                 document.getElementById('userInput').focus();
 
             } catch (error) {
-                console.error('Błąd inicjalizacji:', error);
-                updateLoadingStatus("Błąd ładowania modelu: " + error.message);
-
-                if (window.svgControls) {
-                    window.svgControls.updateStatus("Błąd", "#ff4444");
-                }
-            }
         }
 
-        function updateLoadingStatus(message) {
-            document.getElementById('loadingStatus').textContent = message;
-        }
-
-        async function sendMessage() {
-            if (!modelLoaded || isGenerating) return;
-
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            if (!message) return;
-
-            // Dodaj wiadomość użytkownika
-            addMessage(message, 'user');
-            input.value = '';
-
-            // Rozpocznij generowanie
-            isGenerating = true;
-            document.getElementById('sendButton').disabled = true;
-
-            // Animacja myślenia w SVG
-            if (window.svgControls) {
-                window.svgControls.updateStatus("Myślę...", "#ff9800");
-                window.svgControls.animateThinking();
-            }
-
+        // Initialize the application
+        async function initApp() {
+            updateStatus('Initializing ONNX Runtime...');
+            
             try {
-                // Symulacja inferencji LLM
-                const response = await generateResponse(message);
-                addMessage(response, 'ai');
-
+                // Initialize ONNX model
+                await onnxModel.initialize();
+                
+                updateStatus('Loading language model...');
+                
+                // Load tokenizer (in a real app, you would load the actual tokenizer)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                updateStatus('Ready', 'success');
+                
+                // Enable input after initialization
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                
             } catch (error) {
-                addMessage("Przepraszam, wystąpił błąd: " + error.message, 'ai');
-            } finally {
-                isGenerating = false;
-                document.getElementById('sendButton').disabled = false;
-
-                if (window.svgControls) {
-                    window.svgControls.updateStatus("Gotowy", "#4CAF50");
-                }
+                console.error('Initialization error:', error);
+                updateStatus(`Error: ${error.message}`, 'error');
+                
+                // Show error message in chat
+                addMessage("Failed to initialize the AI model. Please refresh the page to try again.", 'assistant');
             }
         }
 
-        async function generateResponse(prompt) {
-            // W rzeczywistej implementacji tutaj byłaby inferencja modelu
-            // Przykład z ONNX Runtime:
-            /*
-            const inputTensor = new ort.Tensor('int64', tokenize(prompt), [1, tokens.length]);
-            const feeds = { input_ids: inputTensor };
-            const results = await wasmModule.run(feeds);
-            return detokenize(results.logits.data);
-            */
 
-            // Symulacja generowania odpowiedzi
-            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-
-            const responses = [
-                "To bardzo interesujące pytanie! Jako lokalny LLM, mogę powiedzieć że...",
-                "Rozumiem Twoje pytanie. Z mojej perspektywy jako AI działające w przeglądarce...",
-                "Świetne pytanie! Oto co myślę na ten temat...",
-                "Dzięki za pytanie. Jako model językowy uruchomiony lokalnie mogę odpowiedzieć..."
-            ];
-
-            return responses[Math.floor(Math.random() * responses.length)] +
-                   " (To demo - prawdziwy model byłby tutaj zintegrowany przez WebAssembly)";
+        // Update status message
+        function updateStatus(message, type = 'info') {
+            if (!statusElement) return;
+            
+            statusElement.textContent = message;
+            statusElement.style.color = {
+                'info': 'var(--text-secondary)',
+                'success': 'var(--success)',
+                'error': 'var(--error)'
+            }[type];
+            
+            // Auto-hide success messages after 3 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (statusElement.textContent === message) {
+                        statusElement.textContent = 'Ready';
+                        statusElement.style.color = 'var(--text-secondary)';
+                    }
+                }, 3000);
+            }
         }
 
-        function addMessage(text, sender) {
-            const container = document.getElementById('chatContainer');
+
+        // Add message to chat
+        function addMessage(text, sender = 'assistant') {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
-            messageDiv.textContent = text;
-            container.appendChild(messageDiv);
-            container.scrollTop = container.scrollHeight;
+            messageDiv.className = `message ${sender}`;
+            
+            const time = new Date();
+            const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${text}</div>
+                <span class="time">${timeString}</span>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // Obsługa Enter
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('userInput').addEventListener('keypress', function(e) {
+
+        // Send message handler with streaming response
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message || isGenerating) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+            
+            // Show loading state
+            isGenerating = true;
+            sendButton.disabled = true;
+            loadingIndicator.style.display = 'inline-block';
+            updateStatus('Generating response...');
+            
+            // Create a new message element for the AI response
+            const messageId = 'msg-' + Date.now();
+            const messageDiv = document.createElement('div');
+            messageDiv.id = messageId;
+            messageDiv.className = 'message assistant';
+            chatContainer.appendChild(messageDiv);
+            
+            // Add typing indicator
+            messageDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            
+            // Scroll to the new message
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Create a new AbortController for this request
+            abortController = new AbortController();
+            
+            try {
+                // Generate response using ONNX model
+                const response = await onnxModel.generateResponse(message, abortController.signal);
+                
+                // Display the response with streaming effect
+                await streamText(messageId, response);
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Generation aborted by user');
+                    messageDiv.remove();
+                } else {
+                    console.error('Error generating response:', error);
+                    updateMessage(messageId, "I'm sorry, I encountered an error processing your request.", true);
+                }
+            } finally {
+                // Reset loading state
+                isGenerating = false;
+                sendButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+                updateStatus('Ready', 'success');
+                userInput.focus();
+            }
+        }
+        
+        // Stream text with typing effect
+        async function streamText(messageId, text) {
+            const messageDiv = document.getElementById(messageId);
+            if (!messageDiv) return;
+            
+            // Remove typing indicator
+            messageDiv.innerHTML = '';
+            
+            // Add message content
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            messageDiv.appendChild(contentDiv);
+            
+            // Add timestamp
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'time';
+            timeSpan.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messageDiv.appendChild(timeSpan);
+            
+            // Stream the text character by character
+            for (let i = 0; i < text.length; i++) {
+                if (abortController?.signal.aborted) break;
+                
+                contentDiv.textContent = text.substring(0, i + 1);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Random delay for typing effect
+                const delay = Math.random() * 30 + 10;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+        
+        // Update existing message
+        function updateMessage(messageId, text, isError = false) {
+            const messageDiv = document.getElementById(messageId);
+            if (!messageDiv) return;
+            
+            if (isError) {
+                messageDiv.classList.add('error');
+            }
+            
+            const contentDiv = messageDiv.querySelector('.message-content') || document.createElement('div');
+            contentDiv.className = 'message-content' + (isError ? ' error' : '');
+            contentDiv.textContent = text;
+            
+            if (!messageDiv.contains(contentDiv)) {
+                messageDiv.innerHTML = '';
+                messageDiv.appendChild(contentDiv);
+                
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'time';
+                timeSpan.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                messageDiv.appendChild(timeSpan);
+            }
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize the app when the page loads
+            initApp();
+            
+            // Handle Enter key in input
+            userInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     sendMessage();
+                } else if (e.key === 'Escape' && isGenerating) {
+                    // Allow cancelling generation with Escape
+                    abortController?.abort();
                 }
             });
-
-            // Dodaj CSS dla animacji
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes pulse {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.1); }
-                    100% { transform: scale(1); }
+            
+            // Handle send button click
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Auto-focus input when clicking anywhere on the page
+            document.addEventListener('click', () => {
+                if (!isGenerating) {
+                    userInput.focus();
                 }
-            `;
-            document.head.appendChild(style);
-
-            // Rozpocznij inicjalizację
-            initializeLLM();
+            });
+            
+            // Handle beforeunload to clean up resources
+            window.addEventListener('beforeunload', () => {
+                if (isGenerating) {
+                    abortController?.abort();
+                }
+            });
         });
+
+
+        // Download SVG function
+        function downloadSVG() {
+            try {
+                const svg = document.querySelector('svg').outerHTML;
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'llm-demo-' + new Date().toISOString().slice(0, 10) + '.svg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                updateStatus('SVG downloaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error downloading SVG:', error);
+                updateStatus('Failed to download SVG', 'error');
+            }
+        }
     </script>
 </body>
 </html>

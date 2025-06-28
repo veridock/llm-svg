@@ -16,8 +16,8 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Check if SVG exists
-SVG_FILE="llm.pwa.svg"
-PORT=${1:-8000}
+SVG_FILE="svg/llm.pwa.svg"
+PORT=${1:-8001}
 
 
 # Function to check if port is available

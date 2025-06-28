@@ -11,19 +11,30 @@
     <filter id="blur">
       <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
     </filter>
+    <filter id="dropShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+      <feOffset in="blur" dx="2" dy="2" result="offsetBlur"/>
+      <feMerge>
+        <feMergeNode in="offsetBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
     <style>
-      .panel { fill: url(#panelGrad); stroke: rgba(255,255,255,0.3); stroke-width: 1; }
-      .text { fill: white; font-family: Arial, sans-serif; }
-      .title { font-size: 24px; font-weight: bold; }
-      .status { font-size: 14px; }
-      .button { fill: #4CAF50; stroke: #45a049; stroke-width: 1; cursor: pointer; }
-      .button:hover { fill: #45a049; }
-      .button-text { fill: white; font-size: 14px; font-weight: bold; text-anchor: middle; cursor: pointer; }
-      .input-bg { fill: rgba(255,255,255,0.9); stroke: #ccc; stroke-width: 1; }
-      .message-user { fill: rgba(33,150,243,0.6); }
-      .message-ai { fill: rgba(76,175,80,0.6); }
-      .message-text { fill: white; font-size: 12px; }
-      .loading { opacity: 0.6; }
+      .panel { fill: #f8f9fa; filter: url(#dropShadow); }
+      .message-ai { fill: #f8f9fa; }
+      .message-user { fill: #e9ecef; }
+      .input-bg { fill: #ffffff; opacity: 1; border: 1px solid #ced4da; }
+      .button { fill: #4CAF50; cursor: pointer; transition: all 0.3s; }
+      .button:hover { filter: brightness(1.1); }
+      text { font-family: Arial, sans-serif; fill: #212529; font-size: 14px; }
+      .ai-text { fill: #212529; }
+      .user-text { fill: #212529; }
+      .timestamp { fill: #6c757d; font-size: 11px; }
+      .typing-indicator span { fill: #6c757d; }
+      .message-text { fill: #212529; font-size: 14px; }
+      .status { fill: #6c757d; font-size: 13px; }
+      .title { fill: #212529; font-size: 20px; font-weight: 600; }
+      .loading { opacity: 0.8; }
     </style>
   </defs>
 
@@ -74,7 +85,7 @@
   </g>
 
   <!-- Obszar czatu -->
-  <rect x="70" y="180" width="660" height="280" rx="8" fill="rgba(0,0,0,0.7)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+  <rect x="70" y="180" width="660" height="280" rx="8" fill="#ffffff" stroke="#dee2e6" stroke-width="1"/>
 
   <!-- Scrollable chat area -->
   <g id="chatArea" clip-path="url(#chatClip)">
@@ -86,29 +97,35 @@
 
     <!-- Wiadomość powitalna -->
     <rect x="90" y="200" width="600" height="40" rx="5" class="message-ai"/>
-    <text x="100" y="215" class="message-text">🎉 Serwer lokalny działa! SVG z WebAssembly i AI gotowe.</text>
-    <text x="100" y="230" class="message-text">💡 Bezpieczne API DOM, brak błędów. Kliknij przycisk testowy poniżej!</text>
+    <text x="90" y="205" class="message-text">🎉 Serwer lokalny działa! SVG z WebAssembly i AI gotowe.</text>
+    <text x="90" y="225" class="message-text">💡 Bezpieczne API DOM, brak błędów. Kliknij przycisk testowy poniżej!</text>
   </g>
 
   <!-- Input area -->
-  <rect x="70" y="480" width="460" height="35" rx="5" class="input-bg"/>
+  <rect x="70" y="480" width="460" height="35" rx="5" fill="#ffffff" stroke="#ced4da" stroke-width="1"/>
   <text id="inputPlaceholder" x="80" y="500" class="text" font-size="14" fill="#666">Napisz wiadomość... (Enter lub kliknij Wyślij)</text>
 
   <!-- Send button -->
-  <rect id="sendBtn" x="540" y="480" width="90" height="35" rx="5" class="button"/>
-  <text x="585" y="500" class="button-text">Wyślij</text>
+  <g class="button-group">
+    <rect id="sendBtn" x="540" y="480" width="90" height="35" rx="5" class="button"/>
+    <text x="585" y="498" class="button-text" text-anchor="middle" dominant-baseline="middle">Wyślij</text>
+  </g>
 
   <!-- Download button -->
-  <rect id="downloadBtn" x="640" y="480" width="90" height="35" rx="5" class="button" style="fill: #2196F3"/>
-  <text x="685" y="500" class="button-text">💾 Save</text>
+  <g class="button-group">
+    <rect id="downloadBtn" x="640" y="480" width="90" height="35" rx="5" class="button" style="fill: #2196F3"/>
+    <text x="685" y="498" class="button-text" text-anchor="middle" dominant-baseline="middle">💾 Save</text>
+  </g>
 
   <!-- Test buttons -->
-  <rect id="testBtn" x="650" y="20" width="100" height="30" rx="5" class="button" style="fill: #ff9800"/>
-  <text x="700" y="38" class="button-text">🧪 Test WASM</text>
+  <g class="button-group">
+    <rect id="testBtn" x="650" y="20" width="100" height="30" rx="5" class="button" style="fill: #ff9800"/>
+    <text x="700" y="37" class="button-text" text-anchor="middle" dominant-baseline="middle">🧪 Test WASM</text>
+  </g>
 
   <!-- Loading progress -->
   <g id="loadingProgress">
-    <rect x="70" y="530" width="660" height="20" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <rect x="70" y="530" width="660" height="20" rx="10" fill="rgba(0,0,0,0.1)" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>
     <rect id="progressBar" x="70" y="530" width="0" height="20" rx="10" fill="#4CAF50">
       <animate id="progressAnim" attributeName="width" values="0;660" dur="3s" begin="indefinite"/>
     </rect>
@@ -117,13 +134,27 @@
 
   <script type="text/javascript">
     <![CDATA[
-    console.log('🚀 LLM PWA SVG Loading...');
+    // Enhanced logging function with timestamps and log levels
+    const logger = {
+      debug: (...args) => console.debug(`[${new Date().toISOString()}] 🐛`, ...args),
+      info: (...args) => console.info(`[${new Date().toISOString()}] ℹ️`, ...args),
+      warn: (...args) => console.warn(`[${new Date().toISOString()}] ⚠️`, ...args),
+      error: (...args) => console.error(`[${new Date().toISOString()}] ❌`, ...args),
+      success: (...args) => console.log(`[${new Date().toISOString()}] ✅`, ...args)
+    };
+
+    logger.info('🚀 LLM PWA SVG Loading...');
 
     // Safe DOM checking
     const isSVGContext = !window.document || !window.document.head;
     const isServerContext = window.location && window.location.protocol.includes('http');
 
-    console.log('Context:', { isSVGContext, isServerContext });
+    logger.debug('Application Context:', { 
+      isSVGContext, 
+      isServerContext,
+      userAgent: navigator.userAgent,
+      viewport: `${window.innerWidth}x${window.innerHeight}`
+    });
 
     // Globalne zmienne
     let wasmModule = null;
@@ -150,9 +181,21 @@
     // Bezpieczna inicjalizacja WebAssembly
     async function initWasm() {
       try {
-        console.log('🔧 Initializing WebAssembly...');
+        logger.info('🔧 Initializing WebAssembly...');
+        performance.mark('wasm-init-start');
         const wasmModule = await WebAssembly.instantiate(wasmBinary);
-        console.log('✅ WASM loaded:', wasmModule.instance.exports);
+        performance.mark('wasm-init-end');
+        performance.measure('WASM Initialization', 'wasm-init-start', 'wasm-init-end');
+        
+        const wasmExports = wasmModule.instance.exports;
+        const wasmMemory = wasmExports.memory ? 
+          `${Math.round(wasmExports.memory.buffer.byteLength / 1024)}KB` : 'N/A';
+          
+        logger.success('WASM Module Loaded', {
+          exports: Object.keys(wasmExports),
+          memory: wasmMemory,
+          duration: performance.getEntriesByName('WASM Initialization')[0]?.duration.toFixed(2) + 'ms'
+        });
         return wasmModule.instance.exports;
       } catch (error) {
         console.error('❌ WASM Error:', error);
@@ -175,16 +218,31 @@
         await sleep(1500);
         updateStatus('Inicjalizacja tokenizera...', '#ff9800');
 
-        await sleep(700);
-        updateStatus('🎉 Gotowy do rozmowy!', '#4CAF50');
+        try {
+          // Initialize modelData as empty object if not defined
+          const modelData = {};
+          
+          // Simulate model loading
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
-        modelLoaded = true;
-        document.getElementById('loadingProgress').style.display = 'none';
-        console.log('✅ Model loaded successfully');
+          modelLoaded = true;
+          const loadingElement = document.getElementById('loadingProgress');
+          if (loadingElement) {
+            loadingElement.style.display = 'none';
+          }
+          
+          logger.success('Model loaded successfully', {
+            modelSize: modelData && modelData.length ? `${Math.round(modelData.length / 1024)}KB` : 'N/A',
+            timestamp: new Date().toISOString()
+          });
 
+        } catch (error) {
+          console.error('❌ Model loading error:', error);
+          updateStatus(`❌ Błąd ładowania: ${error.message}`, '#ff4444');
+        }
       } catch (error) {
         console.error('❌ Model loading error:', error);
-        updateStatus('❌ Błąd ładowania: ' + error.message, '#ff4444');
+        updateStatus(`❌ Błąd ładowania: ${error.message}`, '#ff4444');
       }
     }
 
@@ -209,7 +267,14 @@
 
       // Użyj WASM do obliczeń
       const wasmResult = wasmModule.add(inputLength, 42);
-      console.log('🧮 WASM calculation:', inputLength, '+ 42 =', wasmResult);
+      const calculationDetails = {
+        inputLength,
+        wasmResult,
+        timestamp: new Date().toISOString(),
+        memoryUsage: performance.memory ? 
+          `${Math.round(performance.memory.usedJSHeapSize / 1024 / 1024)}MB` : 'N/A'
+      };
+      logger.debug('WASM Calculation', calculationDetails);
 
       // Symulacja inferencji LLM
       await sleep(300 + Math.random() * 1200);
@@ -238,7 +303,12 @@
           if (pulseAnim) pulseAnim.beginElement();
         }
 
-        console.log('📊 Status:', text);
+        logger.info('Status Update', {
+          status: text,
+          timestamp: new Date().toISOString(),
+          isGenerating,
+          messagesInChat: document.querySelectorAll('.message').length
+        });
       } catch (error) {
         console.error('Status update error:', error);
       }
@@ -284,7 +354,13 @@
           chatArea.setAttribute('transform', `translate(0, -${offset})`);
         }
 
-        console.log('💬 Message added:', isUser ? 'User:' : 'AI:', text.substring(0, 30) + '...');
+        const messageInfo = {
+          type: isUser ? 'user' : 'ai',
+          length: text.length,
+          preview: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+          timestamp: new Date().toISOString()
+        };
+        logger.info('New Message', messageInfo);
 
       } catch (error) {
         console.error('Add message error:', error);
@@ -293,7 +369,13 @@
 
     async function sendMessage() {
       if (!modelLoaded || isGenerating || !currentInput.trim()) {
-        console.log('⚠️ Cannot send:', { modelLoaded, isGenerating, input: currentInput });
+        logger.warn('Cannot send message', { 
+          reason: !modelLoaded ? 'Model not loaded' : isGenerating ? 'Already generating' : 'Empty input',
+          modelLoaded,
+          isGenerating,
+          inputLength: currentInput?.length || 0,
+          timestamp: new Date().toISOString()
+        });
         return;
       }
 
@@ -329,7 +411,10 @@
     // Download function (bezpieczny)
     function downloadSVG() {
       try {
-        console.log('💾 Preparing download...');
+        logger.info('Preparing SVG download', {
+          timestamp: new Date().toISOString(),
+          svgSize: `${Math.round(new XMLSerializer().serializeToString(svgElement).length / 1024)}KB`
+        });
         const svgElement = document.documentElement || document.querySelector('svg');
         const svgString = new XMLSerializer().serializeToString(svgElement);
 
@@ -353,7 +438,10 @@ ${svgString}`;
 
           addMessage('💾 Plik pobrany! Sprawdź folder Downloads', false);
         } else {
-          console.log('📥 Download URL:', url);
+          logger.debug('Generated download URL', {
+            url: url.substring(0, 50) + '...',
+            timestamp: new Date().toISOString()
+          });
           addMessage('💾 Download URL generated (check console)', false);
         }
 
@@ -368,7 +456,19 @@ ${svgString}`;
       if (wasmModule) {
         const result = wasmModule.add(123, 456);
         addMessage(`🧪 WASM Test: 123 + 456 = ${result}`, false);
-        console.log('🧪 WASM test result:', result);
+        const testResult = {
+          success: !isNaN(result),
+          value: result,
+          timestamp: new Date().toISOString(),
+          wasmAvailable: typeof WebAssembly === 'object'
+        };
+        logger.info('WASM Test', testResult);
+        
+        if (testResult.success) {
+          logger.success('WASM Test Passed', testResult);
+        } else {
+          logger.error('WASM Test Failed', testResult);
+        }
       } else {
         addMessage('❌ WASM nie załadowany jeszcze', false);
       }
@@ -378,17 +478,43 @@ ${svgString}`;
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // Safe event handlers
     try {
+      // Initialize event handlers
       const sendBtn = document.getElementById('sendBtn');
       const downloadBtn = document.getElementById('downloadBtn');
       const testBtn = document.getElementById('testBtn');
+      const inputField = document.getElementById('inputField');
 
       if (sendBtn) sendBtn.addEventListener('click', sendMessage);
       if (downloadBtn) downloadBtn.addEventListener('click', downloadSVG);
       if (testBtn) testBtn.addEventListener('click', testWasm);
 
-      console.log('✅ Event handlers attached');
+      // Wait for document.body to be available
+      const checkBody = setInterval(() => {
+        if (document.body) {
+          clearInterval(checkBody);
+          logger.success('Event handlers initialized', {
+            timestamp: new Date().toISOString(),
+            handlers: ['click', 'keydown', 'input'].filter(type => 
+              document.body.hasAttribute(`data-handler-${type}`)
+            )
+          });
+        }
+      }, 100);
+      
+      // Log performance metrics
+      if (performance.getEntriesByType) {
+        const navTiming = performance.getEntriesByType('navigation')[0];
+        if (navTiming) {
+          logger.debug('Page Load Metrics', {
+            dns: navTiming.domainLookupEnd - navTiming.domainLookupStart,
+            tcp: navTiming.connectEnd - navTiming.connectStart,
+            ttfb: navTiming.responseStart - navTiming.requestStart,
+            domLoad: navTiming.domContentLoadedEventEnd - navTiming.domContentLoadedEventStart,
+            pageLoad: navTiming.loadEventEnd - navTiming.loadEventStart
+          });
+        }
+      }
     } catch (error) {
       console.error('Event handler error:', error);
     }
@@ -413,12 +539,52 @@ ${svgString}`;
     });
 
     // Safe initialization
-    console.log('🎯 Starting initialization...');
+    performance.mark('app-init-start');
+    logger.info('Starting application initialization...');
+    
+    // Log initial resource timing
+    if (performance.getEntriesByType) {
+      const resources = performance.getEntriesByType('resource');
+      const svgResources = resources.filter(r => r.name.endsWith('.svg'));
+      if (svgResources.length > 0) {
+        logger.debug('SVG Resources Loaded', {
+          count: svgResources.length,
+          totalSize: `${Math.round(svgResources.reduce((sum, r) => sum + (r.encodedBodySize || 0), 0) / 1024)}KB`
+        });
+      }
+    }
     setTimeout(() => {
       loadLLMModel();
     }, 500);
 
-    console.log('🎉 LLM PWA SVG Ready!');
+    performance.mark('app-init-end');
+    performance.measure('App Initialization', 'app-init-start', 'app-init-end');
+    
+    const initTime = performance.getEntriesByName('App Initialization')[0]?.duration || 0;
+    
+    logger.success('Application Ready', {
+      version: '1.0.0',
+      initializationTime: `${initTime.toFixed(2)}ms`,
+      timestamp: new Date().toISOString(),
+      features: {
+        wasm: typeof WebAssembly === 'object',
+        serviceWorker: 'serviceWorker' in navigator,
+        webGL: (() => {
+          try { return !!window.WebGLRenderingContext && !!(document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('experimental-webgl')); } catch(e) { return false; }
+        })()
+      },
+      environment: {
+        online: navigator.onLine,
+        deviceMemory: navigator.deviceMemory || 'unknown',
+        hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+        connection: navigator.connection ? {
+          effectiveType: navigator.connection.effectiveType,
+          downlink: navigator.connection.downlink,
+          rtt: navigator.connection.rtt,
+          saveData: navigator.connection.saveData
+        } : 'unavailable'
+      }
+    });
     ]]>
   </script>
 </svg>

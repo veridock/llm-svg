@@ -451,15 +451,12 @@
 
                 updateLoadingStatus("Ładowanie modelu LLM...");
 
-                // Tutaj załadowałbyś rzeczywisty model
-                // Przykład z ONNX Runtime Web:
-                /*
-                const ort = require('onnxruntime-web');
-                wasmModule = await ort.InferenceSession.create('model.onnx');
-                */
+                // Initialize the worker
+                const { error } = await sendToWorker('init');
+                if (error) throw new Error(error);
 
-                // Symulacja ładowania modelu
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // Wait a bit to show the loading state
+                await new Promise(resolve => setTimeout(resolve, 500));
 
                 modelLoaded = true;
                 updateLoadingStatus("Model załadowany! Gotowy do rozmowy.");
@@ -482,12 +479,13 @@
             updateStatus('Initializing ONNX Runtime...');
             
             try {
-                // Initialize ONNX model
-                await onnxModel.initialize();
+                // Initialize the worker
+                const { error } = await sendToWorker('init');
+                if (error) throw new Error(error);
                 
                 updateStatus('Loading language model...');
                 
-                // Load tokenizer (in a real app, you would load the actual tokenizer)
+                // Wait a bit to show the loading state
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
                 updateStatus('Ready', 'success');
@@ -583,8 +581,12 @@
             abortController = new AbortController();
             
             try {
-                // Generate response using ONNX model
-                const response = await onnxModel.generateResponse(message, abortController.signal);
+                // Generate response using ONNX model in worker
+                const { data: response, error } = await sendToWorker('generate', message);
+                
+                if (error) {
+                    throw new Error(error);
+                }
                 
                 // Display the response with streaming effect
                 await streamText(messageId, response);
@@ -697,6 +699,8 @@
                 if (isGenerating) {
                     abortController?.abort();
                 }
+                // Terminate the worker
+                worker.terminate();
             });
         });
 

@@ -1,0 +1,19 @@
+{
+  "name": "llm-svg",
+  "version": "1.0.0",
+  "description": "LLM PWA with ONNX Runtime in SVG",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "onnxruntime-node": "^1.16.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

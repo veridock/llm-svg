@@ -19,6 +19,10 @@ python3 -m http.server 8000
 # Instant server
 npx serve ./svg -p 8000
 ```
+```bash
+# Instant server
+npx serve ./html -p 8082
+```
 
 ## ⚡ PHP (jeśli masz PHP)
 ```bash

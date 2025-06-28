@@ -1,0 +1,424 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="panelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.2);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0.05);stop-opacity:1" />
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+    </filter>
+    <style>
+      .panel { fill: url(#panelGrad); stroke: rgba(255,255,255,0.3); stroke-width: 1; }
+      .text { fill: white; font-family: Arial, sans-serif; }
+      .title { font-size: 24px; font-weight: bold; }
+      .status { font-size: 14px; }
+      .button { fill: #4CAF50; stroke: #45a049; stroke-width: 1; cursor: pointer; }
+      .button:hover { fill: #45a049; }
+      .button-text { fill: white; font-size: 14px; font-weight: bold; text-anchor: middle; cursor: pointer; }
+      .input-bg { fill: rgba(255,255,255,0.9); stroke: #ccc; stroke-width: 1; }
+      .message-user { fill: rgba(33,150,243,0.6); }
+      .message-ai { fill: rgba(76,175,80,0.6); }
+      .message-text { fill: white; font-size: 12px; }
+      .loading { opacity: 0.6; }
+    </style>
+  </defs>
+
+  <!-- Tło -->
+  <rect x="0" y="0" width="800" height="600" fill="url(#bgGrad)"/>
+
+  <!-- Panel główny -->
+  <rect x="50" y="30" width="700" height="540" rx="15" class="panel"/>
+
+  <!-- Tytuł -->
+  <text x="400" y="70" class="text title" text-anchor="middle">🤖 LLM 1B PWA - Server Ready</text>
+
+  <!-- Status SVG -->
+  <g id="statusGroup">
+    <!-- Ikona mózgu AI -->
+    <g id="brainIcon" transform="translate(100, 120)">
+      <circle cx="0" cy="0" r="25" fill="#4CAF50" opacity="0.8">
+        <animate id="pulseAnim" attributeName="r" values="25;30;25" dur="2s" repeatCount="indefinite" begin="indefinite"/>
+      </circle>
+      <path d="M-15,-8 Q-10,-15 0,-12 Q10,-15 15,-8 Q10,8 0,4 Q-10,8 -15,-8" fill="white" opacity="0.7"/>
+      <circle cx="-5" cy="-4" r="2" fill="#333"/>
+      <circle cx="5" cy="-4" r="2" fill="#333"/>
+      <path d="M-8,4 Q0,8 8,4" stroke="#333" stroke-width="1.5" fill="none"/>
+    </g>
+
+    <!-- Status light -->
+    <circle id="statusLight" cx="150" cy="120" r="6" fill="#ff4444"/>
+    <text id="statusText" x="170" y="125" class="text status">Inicjalizacja...</text>
+
+    <!-- Animowane połączenia neuronowe -->
+    <g id="neuralNetwork" opacity="0.5">
+      <line x1="125" y1="120" x2="200" y2="100" stroke="white" stroke-width="1">
+        <animate attributeName="opacity" values="0.2;0.8;0.2" dur="1.5s" repeatCount="indefinite"/>
+      </line>
+      <line x1="125" y1="120" x2="200" y2="140" stroke="white" stroke-width="1">
+        <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite"/>
+      </line>
+      <line x1="200" y1="100" x2="250" y2="120" stroke="white" stroke-width="1">
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="1s" repeatCount="indefinite"/>
+      </line>
+      <line x1="200" y1="140" x2="250" y2="120" stroke="white" stroke-width="1">
+        <animate attributeName="opacity" values="1;0.5;1" dur="1s" repeatCount="indefinite"/>
+      </line>
+      <circle cx="200" cy="100" r="4" fill="#4CAF50"/>
+      <circle cx="200" cy="140" r="4" fill="#4CAF50"/>
+      <circle cx="250" cy="120" r="5" fill="#2196F3"/>
+    </g>
+  </g>
+
+  <!-- Obszar czatu -->
+  <rect x="70" y="180" width="660" height="280" rx="8" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+
+  <!-- Scrollable chat area -->
+  <g id="chatArea" clip-path="url(#chatClip)">
+    <defs>
+      <clipPath id="chatClip">
+        <rect x="80" y="190" width="640" height="260"/>
+      </clipPath>
+    </defs>
+
+    <!-- Wiadomość powitalna -->
+    <rect x="90" y="200" width="600" height="40" rx="5" class="message-ai"/>
+    <text x="100" y="215" class="message-text">🎉 Serwer lokalny działa! SVG z WebAssembly i AI gotowe.</text>
+    <text x="100" y="230" class="message-text">💡 Bezpieczne API DOM, brak błędów. Kliknij przycisk testowy poniżej!</text>
+  </g>
+
+  <!-- Input area -->
+  <rect x="70" y="480" width="460" height="35" rx="5" class="input-bg"/>
+  <text id="inputPlaceholder" x="80" y="500" class="text" font-size="14" fill="#666">Napisz wiadomość... (Enter lub kliknij Wyślij)</text>
+
+  <!-- Send button -->
+  <rect id="sendBtn" x="540" y="480" width="90" height="35" rx="5" class="button"/>
+  <text x="585" y="500" class="button-text">Wyślij</text>
+
+  <!-- Download button -->
+  <rect id="downloadBtn" x="640" y="480" width="90" height="35" rx="5" class="button" style="fill: #2196F3"/>
+  <text x="685" y="500" class="button-text">💾 Save</text>
+
+  <!-- Test buttons -->
+  <rect id="testBtn" x="650" y="20" width="100" height="30" rx="5" class="button" style="fill: #ff9800"/>
+  <text x="700" y="38" class="button-text">🧪 Test WASM</text>
+
+  <!-- Loading progress -->
+  <g id="loadingProgress">
+    <rect x="70" y="530" width="660" height="20" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <rect id="progressBar" x="70" y="530" width="0" height="20" rx="10" fill="#4CAF50">
+      <animate id="progressAnim" attributeName="width" values="0;660" dur="3s" begin="indefinite"/>
+    </rect>
+    <text id="progressText" x="400" y="545" class="text status" text-anchor="middle">Ładowanie WebAssembly i modelu LLM...</text>
+  </g>
+
+  <script type="text/javascript">
+    <![CDATA[
+    console.log('🚀 LLM PWA SVG Loading...');
+
+    // Safe DOM checking
+    const isSVGContext = !window.document || !window.document.head;
+    const isServerContext = window.location && window.location.protocol.includes('http');
+
+    console.log('Context:', { isSVGContext, isServerContext });
+
+    // Globalne zmienne
+    let wasmModule = null;
+    let modelLoaded = false;
+    let isGenerating = false;
+    let chatMessages = [];
+    let currentInput = '';
+
+    // WebAssembly module inline (prosty przykład - add function)
+    const wasmBinary = new Uint8Array([
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01, 0x60,
+      0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07, 0x07, 0x01,
+      0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01, 0x07, 0x00, 0x20,
+      0x00, 0x20, 0x01, 0x6a, 0x0b
+    ]);
+
+    // Mock LLM model data
+    const mockModel = {
+      vocab: ['<pad>', '<unk>', 'hello', 'world', 'ai', 'model', 'chat', 'the', 'is', 'and', 'you', 'I', 'am', 'a', 'language', 'local', 'server', 'wasm'],
+      weights: new Float32Array(1000),
+      config: { vocab_size: 18, hidden_size: 64, num_layers: 6 }
+    };
+
+    // Bezpieczna inicjalizacja WebAssembly
+    async function initWasm() {
+      try {
+        console.log('🔧 Initializing WebAssembly...');
+        const wasmModule = await WebAssembly.instantiate(wasmBinary);
+        console.log('✅ WASM loaded:', wasmModule.instance.exports);
+        return wasmModule.instance.exports;
+      } catch (error) {
+        console.error('❌ WASM Error:', error);
+        return null;
+      }
+    }
+
+    // Symulacja ładowania modelu
+    async function loadLLMModel() {
+      try {
+        updateStatus('Ładowanie WebAssembly...', '#ff9800');
+        document.getElementById('progressAnim').beginElement();
+
+        // Załaduj WASM
+        wasmModule = await initWasm();
+
+        await sleep(800);
+        updateStatus('Ładowanie modelu LLM 1B...', '#ff9800');
+
+        await sleep(1500);
+        updateStatus('Inicjalizacja tokenizera...', '#ff9800');
+
+        await sleep(700);
+        updateStatus('🎉 Gotowy do rozmowy!', '#4CAF50');
+
+        modelLoaded = true;
+        document.getElementById('loadingProgress').style.display = 'none';
+        console.log('✅ Model loaded successfully');
+
+      } catch (error) {
+        console.error('❌ Model loading error:', error);
+        updateStatus('❌ Błąd ładowania: ' + error.message, '#ff4444');
+      }
+    }
+
+    // Mock tokenizer
+    function tokenize(text) {
+      return text.toLowerCase().split(/\s+/).map(word => {
+        const index = mockModel.vocab.indexOf(word);
+        return index !== -1 ? index : 1; // <unk>
+      });
+    }
+
+    function detokenize(tokens) {
+      return tokens.map(t => mockModel.vocab[t] || '<unk>').join(' ');
+    }
+
+    // Mock inference z WebAssembly
+    async function runInference(prompt) {
+      if (!wasmModule) throw new Error('WASM not loaded');
+
+      const tokens = tokenize(prompt);
+      const inputLength = tokens.length;
+
+      // Użyj WASM do obliczeń
+      const wasmResult = wasmModule.add(inputLength, 42);
+      console.log('🧮 WASM calculation:', inputLength, '+ 42 =', wasmResult);
+
+      // Symulacja inferencji LLM
+      await sleep(300 + Math.random() * 1200);
+
+      const responses = [
+        `🤖 Analizuję "${prompt}" przez lokalny LLM. Serwer działa świetnie!`,
+        `💡 W kontekście "${prompt}" - WebAssembly wykonał obliczenia: ${wasmResult}`,
+        `🔥 Świetne pytanie! "${prompt}" → processing przez WASM + AI`,
+        `🌟 Localhost response dla "${prompt}": model lokalny aktywny!`
+      ];
+
+      const response = responses[Math.floor(Math.random() * responses.length)];
+      return response;
+    }
+
+    // Bezpieczne UI Functions
+    function updateStatus(text, color) {
+      try {
+        const statusText = document.getElementById('statusText');
+        const statusLight = document.getElementById('statusLight');
+        if (statusText) statusText.textContent = text;
+        if (statusLight) statusLight.setAttribute('fill', color);
+
+        if (color === '#ff9800') { // Thinking animation
+          const pulseAnim = document.getElementById('pulseAnim');
+          if (pulseAnim) pulseAnim.beginElement();
+        }
+
+        console.log('📊 Status:', text);
+      } catch (error) {
+        console.error('Status update error:', error);
+      }
+    }
+
+    function addMessage(text, isUser) {
+      try {
+        const y = 200 + chatMessages.length * 50;
+        const messageGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', isUser ? '300' : '90');
+        rect.setAttribute('y', y);
+        rect.setAttribute('width', '400');
+        rect.setAttribute('height', '35');
+        rect.setAttribute('rx', '5');
+        rect.setAttribute('class', isUser ? 'message-user' : 'message-ai');
+
+        const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textEl.setAttribute('x', isUser ? '310' : '100');
+        textEl.setAttribute('y', y + 15);
+        textEl.setAttribute('class', 'message-text');
+        textEl.textContent = text.substring(0, 55) + (text.length > 55 ? '...' : '');
+
+        const textEl2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textEl2.setAttribute('x', isUser ? '310' : '100');
+        textEl2.setAttribute('y', y + 28);
+        textEl2.setAttribute('class', 'message-text');
+        if (text.length > 55) textEl2.textContent = text.substring(55, 110) + (text.length > 110 ? '...' : '');
+
+        messageGroup.appendChild(rect);
+        messageGroup.appendChild(textEl);
+        if (text.length > 55) messageGroup.appendChild(textEl2);
+
+        const chatArea = document.getElementById('chatArea');
+        if (chatArea) chatArea.appendChild(messageGroup);
+
+        chatMessages.push({text, isUser, element: messageGroup});
+
+        // Auto scroll
+        if (chatMessages.length > 4) {
+          const offset = (chatMessages.length - 4) * 50;
+          chatArea.setAttribute('transform', `translate(0, -${offset})`);
+        }
+
+        console.log('💬 Message added:', isUser ? 'User:' : 'AI:', text.substring(0, 30) + '...');
+
+      } catch (error) {
+        console.error('Add message error:', error);
+      }
+    }
+
+    async function sendMessage() {
+      if (!modelLoaded || isGenerating || !currentInput.trim()) {
+        console.log('⚠️ Cannot send:', { modelLoaded, isGenerating, input: currentInput });
+        return;
+      }
+
+      const message = currentInput.trim();
+      currentInput = '';
+      updateInputDisplay();
+
+      addMessage(message, true);
+
+      isGenerating = true;
+      updateStatus('🧠 Generuję odpowiedź...', '#ff9800');
+
+      try {
+        const response = await runInference(message);
+        addMessage(response, false);
+      } catch (error) {
+        addMessage('❌ Błąd: ' + error.message, false);
+        console.error('Inference error:', error);
+      }
+
+      isGenerating = false;
+      updateStatus('✅ Gotowy', '#4CAF50');
+    }
+
+    function updateInputDisplay() {
+      const placeholder = document.getElementById('inputPlaceholder');
+      if (placeholder) {
+        placeholder.textContent = currentInput || 'Napisz wiadomość... (Enter lub kliknij Wyślij)';
+        placeholder.setAttribute('fill', currentInput ? '#333' : '#666');
+      }
+    }
+
+    // Download function (bezpieczny)
+    function downloadSVG() {
+      try {
+        console.log('💾 Preparing download...');
+        const svgElement = document.documentElement || document.querySelector('svg');
+        const svgString = new XMLSerializer().serializeToString(svgElement);
+
+        const fullSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+${svgString}`;
+
+        const blob = new Blob([fullSVG], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        // Bezpieczne tworzenie linku
+        if (typeof document !== 'undefined' && document.createElement) {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'llm-pwa-assistant-' + Date.now() + '.svg';
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+
+          addMessage('💾 Plik pobrany! Sprawdź folder Downloads', false);
+        } else {
+          console.log('📥 Download URL:', url);
+          addMessage('💾 Download URL generated (check console)', false);
+        }
+
+      } catch (error) {
+        console.error('Download error:', error);
+        addMessage('❌ Błąd pobierania: ' + error.message, false);
+      }
+    }
+
+    // Test WASM function
+    function testWasm() {
+      if (wasmModule) {
+        const result = wasmModule.add(123, 456);
+        addMessage(`🧪 WASM Test: 123 + 456 = ${result}`, false);
+        console.log('🧪 WASM test result:', result);
+      } else {
+        addMessage('❌ WASM nie załadowany jeszcze', false);
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Safe event handlers
+    try {
+      const sendBtn = document.getElementById('sendBtn');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const testBtn = document.getElementById('testBtn');
+
+      if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+      if (downloadBtn) downloadBtn.addEventListener('click', downloadSVG);
+      if (testBtn) testBtn.addEventListener('click', testWasm);
+
+      console.log('✅ Event handlers attached');
+    } catch (error) {
+      console.error('Event handler error:', error);
+    }
+
+    // Keyboard input simulation
+    document.addEventListener('keydown', function(e) {
+      if (!modelLoaded) return;
+
+      try {
+        if (e.key === 'Enter') {
+          sendMessage();
+        } else if (e.key === 'Backspace') {
+          currentInput = currentInput.slice(0, -1);
+          updateInputDisplay();
+        } else if (e.key.length === 1 && currentInput.length < 100) {
+          currentInput += e.key;
+          updateInputDisplay();
+        }
+      } catch (error) {
+        console.error('Keyboard error:', error);
+      }
+    });
+
+    // Safe initialization
+    console.log('🎯 Starting initialization...');
+    setTimeout(() => {
+      loadLLMModel();
+    }, 500);
+
+    console.log('🎉 LLM PWA SVG Ready!');
+    ]]>
+  </script>
+</svg>

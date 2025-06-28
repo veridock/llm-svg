@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM PWA Demo</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background: rgba(33, 150, 243, 0.3);
+            margin-left: 20px;
+        }
+        .ai-message {
+            background: rgba(76, 175, 80, 0.3);
+            margin-right: 20px;
+        }
+        .loading {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 LLM 1B PWA Demo</h1>
+
+        <!-- SVG wizualizacja stanu modelu -->
+        <svg width="100%" height="120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="brainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#2196F3;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+
+            <!-- Ikona mózgu AI -->
+            <g id="brainIcon" transform="translate(50, 20)">
+                <circle cx="0" cy="0" r="30" fill="url(#brainGrad)" opacity="0.8"/>
+                <path d="M-20,-10 Q-15,-20 0,-15 Q15,-20 20,-10 Q15,10 0,5 Q-15,10 -20,-10"
+                      fill="white" opacity="0.6"/>
+                <circle cx="-8" cy="-5" r="3" fill="#333"/>
+                <circle cx="8" cy="-5" r="3" fill="#333"/>
+                <path d="M-10,5 Q0,10 10,5" stroke="#333" stroke-width="2" fill="none"/>
+            </g>
+
+            <!-- Status indicator -->
+            <circle id="statusLight" cx="120" cy="50" r="8" fill="#ff4444"/>
+            <text id="statusText" x="140" y="55" fill="white" font-size="14">Ładowanie...</text>
+
+            <!-- Animowane połączenia neuronowe -->
+            <g id="connections" opacity="0.4">
+                <line x1="80" y1="50" x2="200" y2="30" stroke="white" stroke-width="1">
+                    <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2s" repeatCount="indefinite"/>
+                </line>
+                <line x1="80" y1="50" x2="200" y2="70" stroke="white" stroke-width="1">
+                    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
+                </line>
+                <line x1="200" y1="30" x2="300" y2="50" stroke="white" stroke-width="1">
+                    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+                </line>
+                <line x1="200" y1="70" x2="300" y2="50" stroke="white" stroke-width="1">
+                    <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/>
+                </line>
+            </g>
+
+            <!-- Węzły neuronowe -->
+            <circle cx="200" cy="30" r="6" fill="#4CAF50"/>
+            <circle cx="200" cy="70" r="6" fill="#4CAF50"/>
+            <circle cx="300" cy="50" r="8" fill="#2196F3"/>
+
+            <script type="text/javascript">
+                <![CDATA[
+                // JavaScript wewnątrz SVG do animacji
+                function updateStatus(status, color) {
+                    const light = document.getElementById('statusLight');
+                    const text = document.getElementById('statusText');
+                    light.setAttribute('fill', color);
+                    text.textContent = status;
+                }
+
+                function animateThinking() {
+                    const brain = document.getElementById('brainIcon');
+                    brain.style.transformOrigin = '50px 50px';
+                    brain.style.animation = 'pulse 1s infinite';
+                }
+
+                // Eksportuj funkcje do głównego kontekstu
+                window.svgControls = {
+                    updateStatus,
+                    animateThinking
+                };
+                ]]>
+            </script>
+        </svg>
+
+        <div class="status" id="loadingStatus">
+            Inicjalizacja WebAssembly i ładowanie modelu LLM...
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message ai-message">
+                Witaj! Jestem lokalnym LLM 1B uruchomionym w Twojej przeglądarce.
+                Poczekaj na zakończenie ładowania, a potem możesz ze mną rozmawiać!
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Napisz wiadomość..." disabled>
+            <button id="sendButton" onclick="sendMessage()" disabled>Wyślij</button>
+        </div>
+    </div>
+
+    <script>
+        // Service Worker dla PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('SW zarejestrowany'))
+                .catch(err => console.log('Błąd SW:', err));
+        }
+
+        // Globalne zmienne
+        let wasmModule = null;
+        let modelLoaded = false;
+        let isGenerating = false;
+
+        // Inicjalizacja WebAssembly i LLM
+        async function initializeLLM() {
+            try {
+                updateLoadingStatus("Ładowanie WebAssembly...");
+
+                // Symulacja ładowania WASM (w rzeczywistości użyj np. onnxruntime-web)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                updateLoadingStatus("Ładowanie modelu LLM...");
+
+                // Tutaj załadowałbyś rzeczywisty model
+                // Przykład z ONNX Runtime Web:
+                /*
+                const ort = require('onnxruntime-web');
+                wasmModule = await ort.InferenceSession.create('model.onnx');
+                */
+
+                // Symulacja ładowania modelu
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                modelLoaded = true;
+                updateLoadingStatus("Model załadowany! Gotowy do rozmowy.");
+
+                // Aktualizuj SVG
+                if (window.svgControls) {
+                    window.svgControls.updateStatus("Gotowy", "#4CAF50");
+                }
+
+                // Aktywuj interfejs
+                document.getElementById('userInput').disabled = false;
+                document.getElementById('sendButton').disabled = false;
+                document.getElementById('userInput').focus();
+
+            } catch (error) {
+                console.error('Błąd inicjalizacji:', error);
+                updateLoadingStatus("Błąd ładowania modelu: " + error.message);
+
+                if (window.svgControls) {
+                    window.svgControls.updateStatus("Błąd", "#ff4444");
+                }
+            }
+        }
+
+        function updateLoadingStatus(message) {
+            document.getElementById('loadingStatus').textContent = message;
+        }
+
+        async function sendMessage() {
+            if (!modelLoaded || isGenerating) return;
+
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Dodaj wiadomość użytkownika
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Rozpocznij generowanie
+            isGenerating = true;
+            document.getElementById('sendButton').disabled = true;
+
+            // Animacja myślenia w SVG
+            if (window.svgControls) {
+                window.svgControls.updateStatus("Myślę...", "#ff9800");
+                window.svgControls.animateThinking();
+            }
+
+            try {
+                // Symulacja inferencji LLM
+                const response = await generateResponse(message);
+                addMessage(response, 'ai');
+
+            } catch (error) {
+                addMessage("Przepraszam, wystąpił błąd: " + error.message, 'ai');
+            } finally {
+                isGenerating = false;
+                document.getElementById('sendButton').disabled = false;
+
+                if (window.svgControls) {
+                    window.svgControls.updateStatus("Gotowy", "#4CAF50");
+                }
+            }
+        }
+
+        async function generateResponse(prompt) {
+            // W rzeczywistej implementacji tutaj byłaby inferencja modelu
+            // Przykład z ONNX Runtime:
+            /*
+            const inputTensor = new ort.Tensor('int64', tokenize(prompt), [1, tokens.length]);
+            const feeds = { input_ids: inputTensor };
+            const results = await wasmModule.run(feeds);
+            return detokenize(results.logits.data);
+            */
+
+            // Symulacja generowania odpowiedzi
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+
+            const responses = [
+                "To bardzo interesujące pytanie! Jako lokalny LLM, mogę powiedzieć że...",
+                "Rozumiem Twoje pytanie. Z mojej perspektywy jako AI działające w przeglądarce...",
+                "Świetne pytanie! Oto co myślę na ten temat...",
+                "Dzięki za pytanie. Jako model językowy uruchomiony lokalnie mogę odpowiedzieć..."
+            ];
+
+            return responses[Math.floor(Math.random() * responses.length)] +
+                   " (To demo - prawdziwy model byłby tutaj zintegrowany przez WebAssembly)";
+        }
+
+        function addMessage(text, sender) {
+            const container = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = text;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Obsługa Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('userInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Dodaj CSS dla animacji
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Rozpocznij inicjalizację
+            initializeLLM();
+        });
+    </script>
+</body>
+</html>

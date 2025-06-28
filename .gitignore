@@ -1,3 +1,11 @@
+.idea
+venv
+node_modules
+build
+dist
+public
+!.git
+!.gitignore
 # Logs
 logs
 *.log

@@ -74,7 +74,7 @@
   </g>
 
   <!-- Obszar czatu -->
-  <rect x="70" y="180" width="660" height="280" rx="8" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+  <rect x="70" y="180" width="660" height="280" rx="8" fill="rgba(0,0,0,0.7)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
 
   <!-- Scrollable chat area -->
   <g id="chatArea" clip-path="url(#chatClip)">
